@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>撮影記録 ダッシュボード</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --text: #1f1f1f; --muted: #6b6b6b; --line: #e3e1dc;
+    --done: #2f7d4f; --done-bg: #e3f3e8; --doing: #a8630b; --doing-bg: #fdf0da;
+    --todo: #5c5c5c; --todo-bg: #ecebe8; --ng: #b3261e; --ng-bg: #fbe4e2; --accent: #3a5a9b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161616; --card: #222; --text: #eee; --muted: #a0a0a0; --line: #333;
+      --done: #7fd19f; --done-bg: #1d3526; --doing: #f0b35c; --doing-bg: #3a2a12;
+      --todo: #bbb; --todo-bg: #2c2c2c; --ng: #ff8a80; --ng-bg: #3d1c1a; --accent: #8fb0f0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif; line-height: 1.6; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.3rem; margin: 8px 0 2px; }
+  .updated { color: var(--muted); font-size: .85rem; margin-bottom: 12px; }
+  h2 { font-size: 1.05rem; margin: 24px 0 8px; border-left: 4px solid var(--accent); padding-left: 8px; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .summary div { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; }
+  .summary b { display: block; font-size: 1.5rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .task { display: flex; gap: 10px; align-items: flex-start; }
+  .badge { flex: none; font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; min-width: 52px; text-align: center; }
+  .b-done { color: var(--done); background: var(--done-bg); }
+  .b-doing { color: var(--doing); background: var(--doing-bg); }
+  .b-todo { color: var(--todo); background: var(--todo-bg); }
+  .b-ok { color: var(--done); background: var(--done-bg); }
+  .b-ng { color: var(--ng); background: var(--ng-bg); }
+  .note { color: var(--muted); font-size: .85rem; }
+  .q h3 { font-size: 1rem; margin: 0 0 6px; }
+  .q dl { margin: 0; }
+  .q dt { font-weight: 700; font-size: .85rem; color: var(--muted); margin-top: 8px; }
+  .q dd { margin: 2px 0 0; }
+  .q ul { margin: 2px 0 0; padding-left: 1.2em; }
+  .urg { font-weight: 700; }
+  .urg-high { color: var(--ng); } .urg-mid { color: var(--doing); } .urg-low { color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>📷 撮影セッティング記録（ベータ）</h1>
+  <div class="updated" id="updated"></div>
+
+  <div class="summary" id="summary"></div>
+
+  <h2>私への質問</h2>
+  <div id="questions"></div>
+
+  <h2>タスク一覧</h2>
+  <div id="tasks"></div>
+
+  <h2>動作確認の結果</h2>
+  <div id="tests"></div>
+</main>
+
+<script>
+// ===== ここを書き換えて更新する =====
+const UPDATED = "2026-09-25 iPhone実機確認OK・ベータ版完成";
+
+const TASKS = [
+  { s: "done",  t: "作業をタスクに分解し、このダッシュボードを作る" },
+  { s: "done",  t: "設計：画面構成・保存方法・記録項目を決める", note: "アプリは index.html 1ファイル。データはスマホのブラウザ内に保存（無料・ログインなし）。入力はほぼ「ボタンをタップ」で済む形に。入力は自動保存。" },
+  { s: "done",  t: "記録の一覧画面（新しい順・キーワード検索）", note: "写真の小さな画像・日付・「F8 · 1/4 · ISO100 · 2灯 · 背景:グレー」のような要約つき。" },
+  { s: "done",  t: "入力画面：カメラ設定（F値・シャッター速度・ISO・WB）をタップで選べるようにする", note: "候補にない値は、ボタンの下の欄に直接入力できます。" },
+  { s: "done",  t: "入力画面：ライト（灯数の追加・外す、位置・出力・役割）", note: "「＋ ライトを追加」を押した数＝灯数。1灯ごとに役割・位置・出力・メモ。" },
+  { s: "done",  t: "入力画面：背景紙の色・フィルター・作品名・メモ（うまくいった点／反省点）", note: "フィルターは複数選べます。作品名は過去に入れたものが候補に出ます。" },
+  { s: "done",  t: "写真の添付（スマホ内で縮小して保存）", note: "長辺1600pxに縮小して保存。スマホ本体の元写真には触りません。" },
+  { s: "done",  t: "「前回の設定で新規」ボタン（現場での入力を減らす）", note: "カメラ・ライト・背景・フィルター・作品名を引き継ぎ、写真とメモは空で始まります。" },
+  { s: "done",  t: "バックアップ（書き出し・読み込み）", note: "一覧画面右上の「バックアップ」から。読み込みは追加・上書きのみで、今ある記録は消しません。" },
+  { s: "done",  t: "動作確認（スマホ画面サイズで一通り操作）", note: "パソコンのブラウザをスマホの大きさにして確認。実機のスマホではまだ試していません。" },
+  { s: "done",  t: "公開前の調整：スマホでのバックアップ保存・電波がなくても開ける対応", note: "バックアップはスマホの共有メニュー（「ファイルに保存」など）から保存できるように。一度開いたあとは電波がなくても開けます。" },
+  { s: "done",  t: "GitHub Pagesで公開（fj8kumo-works/satsuei-kiroku・Public）", note: "アプリ：https://fj8kumo-works.github.io/satsuei-kiroku/" },
+  { s: "done",  t: "公開したページで動作確認", note: "パソコンのブラウザ（スマホサイズ）で確認。" },
+  { s: "done",  t: "iPhone実機での確認", note: "記録作成・写真追加・バックアップ書き出し、すべてOK（あなたが確認）。Androidは実機がないため未確認。" },
+];
+
+const TESTS = [
+  { ok: true, what: "新しい記録を作り、全項目を入力", result: "作品名・F値/SS/ISO/WB・ライト2灯・背景・フィルター2つ・メモ2つを入れ、すべて自動保存されたことを確認。" },
+  { ok: true, what: "写真2枚を追加（4000×3000pxの画像で試験）", result: "1600×1200pxに縮小して保存（元79KB→13KB）。一覧に小さな画像が出て、タップで大きく表示できた。" },
+  { ok: true, what: "ページを再読み込み", result: "記録が消えずに残っていた。" },
+  { ok: true, what: "「前回の設定で新規」", result: "カメラ・ライト・背景・フィルター・作品名が引き継がれ、写真とメモは空。何も変えずに戻っても記録として残る（テスト中に見つけて直しました）。" },
+  { ok: true, what: "「＋ 新しい記録」を開いて何も入れずに戻る", result: "空の記録は作られない（一覧が散らからない）。" },
+  { ok: true, what: "キーワード検索", result: "メモの言葉「ツヤ」で見つかり、無い言葉では「見つかりませんでした」と表示。" },
+  { ok: true, what: "バックアップの書き出し → 記録を削除 → 読み込み", result: "記録2件・写真2枚のファイル（41KB）ができ、削除した記録が写真ごと元に戻った。（テスト用に作ったデータで試しました）" },
+  { ok: true, what: "暗い画面設定（ダークモード）", result: "スマホが暗い表示の設定なら、アプリも暗い色で表示される。暗い撮影部屋でもまぶしくない。" },
+  { ok: true, what: "電波がない状態で開く（配信を止めて再読み込み）", result: "前回開いた版で起動し、記録一覧も表示された。" },
+  { ok: true, what: "公開ページで記録の作成・写真追加・一覧表示", result: "https://fj8kumo-works.github.io/satsuei-kiroku/ で正常に動作。電波なしで開くための仕組みも有効になった。" },
+  { ok: true, what: "iPhone実機で記録作成・写真追加・バックアップ書き出し", result: "すべてOK（あなたが確認）。" },
+  { ok: false, what: "Android実機", result: "実機がないため未確認。パソコンのChrome（Androidと同じ仕組み）では動作確認済み。" },
+];
+
+const QUESTIONS = [];
+// ===== ここまで =====
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const label = { done: "done", doing: "doing", todo: "todo" };
+document.getElementById("updated").textContent = "最終更新：" + UPDATED;
+const count = k => TASKS.filter(x => x.s === k).length;
+document.getElementById("summary").innerHTML =
+  `<div><b>${count("done")}</b>done</div><div><b>${count("doing")}</b>doing</div><div><b>${count("todo")}</b>todo</div>`;
+document.getElementById("tasks").innerHTML = TASKS.map(x =>
+  `<div class="card task"><span class="badge b-${x.s}">${label[x.s]}</span><div>${esc(x.t)}${x.note ? `<div class="note">${esc(x.note)}</div>` : ""}</div></div>`).join("");
+document.getElementById("tests").innerHTML = TESTS.length ? TESTS.map(x =>
+  `<div class="card task"><span class="badge ${x.ok ? "b-ok" : "b-ng"}">${x.ok ? "OK" : "NG"}</span><div><b>${esc(x.what)}</b><div class="note">${esc(x.result)}</div></div></div>`).join("")
+  : `<div class="card note">まだ動作確認はしていません。</div>`;
+const urgClass = { "高": "urg-high", "中": "urg-mid", "低": "urg-low" };
+document.getElementById("questions").innerHTML = QUESTIONS.length ? QUESTIONS.map((x, i) =>
+  `<div class="card q"><h3>Q${i + 1}. ${esc(x.q)}</h3><dl>
+    <dt>急ぎ度</dt><dd class="urg ${urgClass[x.urgency]}">${esc(x.urgency)}</dd>
+    <dt>選択肢</dt><dd><ul>${x.options.map(o => `<li><b>${esc(o[0])}</b>：${esc(o[1])}</li>`).join("")}</ul></dd>
+    <dt>おすすめ</dt><dd>${esc(x.rec)}</dd>
+    <dt>答えがなかった場合</dt><dd>${esc(x.ifNoAnswer)}</dd></dl></div>`).join("")
+  : `<div class="card note">いまのところ質問はありません。</div>`;
+</script>
+</body>
+</html>
