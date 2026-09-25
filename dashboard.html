@@ -65,7 +65,7 @@
 
 <script>
 // ===== ここを書き換えて更新する =====
-const UPDATED = "2026-09-25 GitHub Pagesで公開済み・実機確認待ち";
+const UPDATED = "2026-09-25 iPhone実機確認OK・ベータ版完成";
 
 const TASKS = [
   { s: "done",  t: "作業をタスクに分解し、このダッシュボードを作る" },
@@ -81,7 +81,7 @@ const TASKS = [
   { s: "done",  t: "公開前の調整：スマホでのバックアップ保存・電波がなくても開ける対応", note: "バックアップはスマホの共有メニュー（「ファイルに保存」など）から保存できるように。一度開いたあとは電波がなくても開けます。" },
   { s: "done",  t: "GitHub Pagesで公開（fj8kumo-works/satsuei-kiroku・Public）", note: "アプリ：https://fj8kumo-works.github.io/satsuei-kiroku/" },
   { s: "done",  t: "公開したページで動作確認", note: "パソコンのブラウザ（スマホサイズ）で確認。" },
-  { s: "todo",  t: "iPhone・Android実機での確認", note: "あなたのスマホでの操作が必要です（質問Q1）。" },
+  { s: "done",  t: "iPhone実機での確認", note: "記録作成・写真追加・バックアップ書き出し、すべてOK（あなたが確認）。Androidは実機がないため未確認。" },
 ];
 
 const TESTS = [
@@ -95,21 +95,11 @@ const TESTS = [
   { ok: true, what: "暗い画面設定（ダークモード）", result: "スマホが暗い表示の設定なら、アプリも暗い色で表示される。暗い撮影部屋でもまぶしくない。" },
   { ok: true, what: "電波がない状態で開く（配信を止めて再読み込み）", result: "前回開いた版で起動し、記録一覧も表示された。" },
   { ok: true, what: "公開ページで記録の作成・写真追加・一覧表示", result: "https://fj8kumo-works.github.io/satsuei-kiroku/ で正常に動作。電波なしで開くための仕組みも有効になった。" },
-  { ok: false, what: "実機のスマホで操作", result: "まだ試せていません。あなたのスマホでの確認をお願いしています（質問Q1）。" },
+  { ok: true, what: "iPhone実機で記録作成・写真追加・バックアップ書き出し", result: "すべてOK（あなたが確認）。" },
+  { ok: false, what: "Android実機", result: "実機がないため未確認。パソコンのChrome（Androidと同じ仕組み）では動作確認済み。" },
 ];
 
-const QUESTIONS = [
-  {
-    q: "iPhoneとAndroidの実機で、アプリを一通り試してもらえますか？",
-    urgency: "中",
-    options: [
-      ["今すぐ試す", "机の上で、記録作成・写真追加・バックアップ保存の3つを試して結果を教えてもらう。問題があればすぐ直せる。"],
-      ["次の撮影のときに試す", "本番で使いながら確認する。不具合があるとその場で困る可能性がある。"],
-    ],
-    rec: "今すぐ試す。特に「写真の追加」と「バックアップを書き出す」は機種ごとに動きが違うので、撮影前に確かめておくと安心です。",
-    ifNoAnswer: "作業はここで止めて待ちます（大きな変更はせず、報告をもらってから直します）。",
-  },
-];
+const QUESTIONS = [];
 // ===== ここまで =====
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
